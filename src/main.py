@@ -29,7 +29,7 @@ CHARCODE_SPACE = 32
 
 # Field
 class Field ():
-    def __init__ (self, context, images_stone, posx = 0, posy = 0):
+    def __init__ (self, context, images_stone, posx = 0, posy = 0, period = 5):
         self.__x = posx
         self.__y = posy
         self.__endx = posx + FIELD_WIDTH
@@ -40,6 +40,8 @@ class Field ():
         self.__cursorx = None
         self.__cursory = None
         self.__direction = None
+        self.__fall_period = period
+        self.__fall_counter = 0
         self.clear()
 
     def __get_pair_position (self):
@@ -118,6 +120,10 @@ class Field ():
         self.__direction = newd
 
     def fall (self, column_ids = range(NR_COLUMN)):
+        self.__fall_counter += 1
+        if self.__fall_counter != self.__fall_period:
+            return
+        self.__fall_counter = 0
         for column_id in column_ids:
             for row_id in range(NR_ROW - 1, 0, -1):
                 if self.field[row_id][column_id] == None and self.field[row_id - 1][column_id] != None:
