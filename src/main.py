@@ -119,11 +119,14 @@ class Field ():
         self.field[pairy][pairx] = None
         self.__direction = newd
 
-    def fall (self, column_ids = range(NR_COLUMN)):
+    def fall_periodic (self, column_ids = range(NR_COLUMN)):
         self.__fall_counter += 1
         if self.__fall_counter != self.__fall_period:
             return
         self.__fall_counter = 0
+        self.fall(column_ids)
+
+    def fall (self, column_ids = range(NR_COLUMN)):
         for column_id in column_ids:
             for row_id in range(NR_ROW - 1, 0, -1):
                 if self.field[row_id][column_id] == None and self.field[row_id - 1][column_id] != None:
@@ -162,7 +165,7 @@ context = canvas.getContext("2d")
 field = Field(context, images_stone)
 
 def do_tick ():
-    field.fall()
+    field.fall_periodic()
     if field.check_landing():
         field.newstone()
     field.draw()
