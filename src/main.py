@@ -1,6 +1,7 @@
 from browser import document
 from browser import html
 from browser import timer
+import random
 
 # debug
 debug = document["debugarea"]
@@ -13,6 +14,9 @@ NR_ROW = 12
 NR_COLUMN = 6
 FIELD_WIDTH = NR_COLUMN * STONE_SIZE
 FIELD_HEIGHT = NR_ROW * STONE_SIZE
+POSX_NEWSTONE = 2
+POSY_NEWSTONE = 1
+DIRECTION_UP, DIRECTION_RIGHT, DIRECTION_DOWN, DIRECTION_LEFT = range(4)
 TIMER_TICK = 100
 
 # WASD + SPACE
@@ -31,6 +35,10 @@ class Field ():
         self.__endy = posy + FIELD_HEIGHT
         self.__context = context
         self.__images_stone = images_stone
+        self.__nr_stones = len(images_stone) - 1
+        self.__cursorx = None
+        self.__cursory = None
+        self.__direction = None
         self.clear()
 
     def draw (self):
@@ -45,10 +53,16 @@ class Field ():
             y += STONE_SIZE
         msg(self.field)
 
+    def newstone (self):
+        self.__cursorx = POSX_NEWSTONE
+        self.__cursory = POSY_NEWSTONE
+        self.__direction = DIRECTION_UP
+        self.field[POSY_NEWSTONE-1][POSX_NEWSTONE] = random.randint(1, self.__nr_stones)
+        self.field[POSY_NEWSTONE][POSX_NEWSTONE] = random.randint(1, self.__nr_stones)
+
     def fall (self, column_ids = range(NR_COLUMN)):
         for column_id in column_ids:
             for row_id in range(NR_ROW - 1, 0, -1):
-                msg(row_id)
                 if self.field[row_id][column_id] == None and self.field[row_id - 1][column_id] != None:
                     self.field[row_id][column_id] = self.field[row_id - 1][column_id]
                     self.field[row_id - 1][column_id] = None
@@ -88,9 +102,7 @@ def cursol (event):
     elif event.charCode == CHARCODE_LEFT:
         pass
     elif event.charCode == CHARCODE_SPACE:
-        pass
-    field.fall()
-    field.draw()
+        field.newstone()
 
 document.bind("keypress", cursol)
 tick = timer.set_interval(do_tick, TIMER_TICK)
