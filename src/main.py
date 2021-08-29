@@ -41,7 +41,7 @@ class Field ():
         self.__cursory = None
         self.__direction = None
         self.__fall_period = period
-        self.__fall_counter = 0
+        self.reset_counter()
         self.clear()
 
     def __get_pair_position (self):
@@ -153,6 +153,19 @@ class Field ():
                 return False
         return True
 
+    def check_landing_all (self):
+        for y in range(self.__cursory, NR_ROW):
+            if self.field[y][self.__cursorx] == None:
+                return False
+        pairx, pairy = self.__get_pair_position()
+        for y in range(pairy, NR_ROW):
+            if self.field[y][pairx] == None:
+                return False
+        return True
+
+    def reset_counter (self):
+        self.__fall_counter = 0
+
     def clear (self):
         self.field = [[None] * NR_COLUMN for i in range(NR_ROW)]
 
@@ -169,17 +182,28 @@ images_stone = (html.IMG(src="img/stone0.png"), html.IMG(src="img/stone1.png"),
 canvas = document["drawarea"]
 context = canvas.getContext("2d")
 field = Field(context, images_stone)
+freefall = False
 
 def do_tick ():
-    field.fall_periodic()
-    if field.check_landing():
-        field.newstone()
+    global freefall
+    if freefall == False:
+        field.fall_periodic()
+        if field.check_landing():
+            freefall = True
+    else:
+        field.fall()
+        if field.check_landing_all():
+            freefall = False
+            field.newstone()
+            field.reset_counter()
     field.draw()
 
-def cursol (event):
+def do_keyevent (event):
     if event.charCode == CHARCODE_UP:
         field.newstone()
-    elif event.charCode == CHARCODE_DOWN:
+    if freefall:
+        return
+    if event.charCode == CHARCODE_DOWN:
         pass
     elif event.charCode == CHARCODE_RIGHT:
         field.move_right()
@@ -188,5 +212,5 @@ def cursol (event):
     elif event.charCode == CHARCODE_SPACE:
         field.rotate()
 
-document.bind("keypress", cursol)
+document.bind("keypress", do_keyevent)
 tick = timer.set_interval(do_tick, TIMER_TICK)
