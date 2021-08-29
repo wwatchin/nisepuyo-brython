@@ -89,6 +89,34 @@ class Field ():
         self.field[self.__cursory][self.__cursorx] = None
         self.__cursorx += 1
 
+    def rotate (self):
+        pairx, pairy = self.__get_pair_position()
+        if self.__direction == DIRECTION_UP:
+            # UP -> RIGHT
+            newx = self.__cursorx + 1
+            newy = self.__cursory
+            newd = DIRECTION_RIGHT
+        elif self.__direction == DIRECTION_RIGHT:
+            # RIGHT -> DOWN
+            newx = self.__cursorx
+            newy = self.__cursory + 1
+            newd = DIRECTION_DOWN
+        elif self.__direction == DIRECTION_DOWN:
+            # DOWN -> LEFT
+            newx = self.__cursorx - 1
+            newy = self.__cursory
+            newd = DIRECTION_LEFT
+        else:
+            # LEFT -> UP
+            newx = self.__cursorx
+            newy = self.__cursory - 1
+            newd = DIRECTION_UP
+        if self.field[newy][newx] != None:
+            return
+        self.field[newy][newx] = self.field[pairy][pairx]
+        self.field[pairy][pairx] = None
+        self.__direction = newd
+
     def fall (self, column_ids = range(NR_COLUMN)):
         for column_id in column_ids:
             for row_id in range(NR_ROW - 1, 0, -1):
@@ -135,7 +163,7 @@ def do_tick ():
 
 def cursol (event):
     if event.charCode == CHARCODE_UP:
-        pass
+        field.newstone()
     elif event.charCode == CHARCODE_DOWN:
         pass
     elif event.charCode == CHARCODE_RIGHT:
@@ -143,7 +171,7 @@ def cursol (event):
     elif event.charCode == CHARCODE_LEFT:
         field.move_left()
     elif event.charCode == CHARCODE_SPACE:
-        field.newstone()
+        field.rotate()
 
 document.bind("keypress", cursol)
 tick = timer.set_interval(do_tick, TIMER_TICK)
