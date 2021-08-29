@@ -65,6 +65,30 @@ class Field ():
         self.field[POSY_NEWSTONE-1][POSX_NEWSTONE] = random.randint(1, self.__nr_stones)
         self.field[POSY_NEWSTONE][POSX_NEWSTONE] = random.randint(1, self.__nr_stones)
 
+    def move_left (self):
+        pairx, pairy = self.__get_pair_position()
+        if pairx == 0 or self.__cursorx == 0:
+            return
+        if self.field[pairy][pairx - 1] != None or self.field[self.__cursory][self.__cursorx - 1] != None:
+            return
+        self.field[pairy][pairx - 1] = self.field[pairy][pairx]
+        self.field[self.__cursory][self.__cursorx - 1] = self.field[self.__cursory][self.__cursorx]
+        self.field[pairy][pairx] = None
+        self.field[self.__cursory][self.__cursorx] = None
+        self.__cursorx -= 1
+
+    def move_right (self):
+        pairx, pairy = self.__get_pair_position()
+        if pairx == NR_COLUMN - 1 or self.__cursorx == NR_COLUMN - 1:
+            return
+        if self.field[pairy][pairx + 1] != None or self.field[self.__cursory][self.__cursorx + 1] != None:
+            return
+        self.field[pairy][pairx + 1] = self.field[pairy][pairx]
+        self.field[self.__cursory][self.__cursorx + 1] = self.field[self.__cursory][self.__cursorx]
+        self.field[pairy][pairx] = None
+        self.field[self.__cursory][self.__cursorx] = None
+        self.__cursorx += 1
+
     def fall (self, column_ids = range(NR_COLUMN)):
         for column_id in column_ids:
             for row_id in range(NR_ROW - 1, 0, -1):
@@ -115,9 +139,9 @@ def cursol (event):
     elif event.charCode == CHARCODE_DOWN:
         pass
     elif event.charCode == CHARCODE_RIGHT:
-        pass
+        field.move_right()
     elif event.charCode == CHARCODE_LEFT:
-        pass
+        field.move_left()
     elif event.charCode == CHARCODE_SPACE:
         field.newstone()
 
