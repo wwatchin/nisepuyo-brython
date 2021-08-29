@@ -83,24 +83,30 @@ class Field ():
         pairx, pairy = self.__get_pair_position()
         if pairx == 0 or self.__cursorx == 0:
             return
-        if self.field[pairy][pairx - 1] != None or self.field[self.__cursory][self.__cursorx - 1] != None:
+        if self.field[pairy][pairx - 1] != None and pairx - 1 != self.__cursorx:
             return
-        self.field[pairy][pairx - 1] = self.field[pairy][pairx]
-        self.field[self.__cursory][self.__cursorx - 1] = self.field[self.__cursory][self.__cursorx]
+        if self.field[self.__cursory][self.__cursorx - 1] and self.__cursorx - 1 != pairx:
+            return
+        cur, pair = self.field[self.__cursory][self.__cursorx], self.field[pairy][pairx]
         self.field[pairy][pairx] = None
         self.field[self.__cursory][self.__cursorx] = None
+        self.field[pairy][pairx - 1] = pair
+        self.field[self.__cursory][self.__cursorx - 1] = cur
         self.__cursorx -= 1
 
     def move_right (self):
         pairx, pairy = self.__get_pair_position()
         if pairx == NR_COLUMN - 1 or self.__cursorx == NR_COLUMN - 1:
             return
-        if self.field[pairy][pairx + 1] != None or self.field[self.__cursory][self.__cursorx + 1] != None:
+        if self.field[pairy][pairx + 1] != None and pairx + 1 != self.__cursorx:
             return
-        self.field[pairy][pairx + 1] = self.field[pairy][pairx]
-        self.field[self.__cursory][self.__cursorx + 1] = self.field[self.__cursory][self.__cursorx]
+        if self.field[self.__cursory][self.__cursorx + 1] and self.__cursorx + 1 != pairx:
+            return
+        cur, pair = self.field[self.__cursory][self.__cursorx], self.field[pairy][pairx]
         self.field[pairy][pairx] = None
         self.field[self.__cursory][self.__cursorx] = None
+        self.field[pairy][pairx + 1] = pair
+        self.field[self.__cursory][self.__cursorx + 1] = cur
         self.__cursorx += 1
 
     def rotate (self):
