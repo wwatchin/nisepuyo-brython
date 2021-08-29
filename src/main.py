@@ -17,6 +17,7 @@ FIELD_HEIGHT = NR_ROW * STONE_SIZE
 POSX_NEWSTONE = 2
 POSY_NEWSTONE = 1
 DIRECTION_UP, DIRECTION_RIGHT, DIRECTION_DOWN, DIRECTION_LEFT = range(4)
+POS_PAIRSTONE = ((0, -1), (1, 0), (0, 1), (-1, 0))
 TIMER_TICK = 100
 
 # WASD + SPACE
@@ -40,6 +41,10 @@ class Field ():
         self.__cursory = None
         self.__direction = None
         self.clear()
+
+    def __get_pair_position (self):
+        return (self.__cursorx + POS_PAIRSTONE[self.__direction][0],
+                self.__cursory + POS_PAIRSTONE[self.__direction][1])
 
     def draw (self):
         self.__context.clearRect(self.__x, self.__y, self.__endx, self.__endy)
@@ -66,6 +71,20 @@ class Field ():
                 if self.field[row_id][column_id] == None and self.field[row_id - 1][column_id] != None:
                     self.field[row_id][column_id] = self.field[row_id - 1][column_id]
                     self.field[row_id - 1][column_id] = None
+        if self.__cursory != None:
+            self.__cursory += 1
+
+    def check_landing (self):
+        for y in range(self.__cursory, NR_ROW):
+            if self.field[y][self.__cursorx] == None:
+                if self.__direction == DIRECTION_RIGHT or self.__direction == DIRECTION_LEFT:
+                    pairx, pairy = self.__get_pair_position()
+                    for y in range(pairy, NR_ROW):
+                        if self.field[y][pairx] == None:
+                            return False
+                    return True
+                return False
+        return True
 
     def clear (self):
         self.field = [[None] * NR_COLUMN for i in range(NR_ROW)]
@@ -83,13 +102,11 @@ images_stone = (html.IMG(src="img/stone0.png"), html.IMG(src="img/stone1.png"),
 canvas = document["drawarea"]
 context = canvas.getContext("2d")
 field = Field(context, images_stone)
-field.field[0][0] = 0
-field.field[0][1] = 1
-field.field[1][2] = 2
-field.field[2][2] = 3
 
 def do_tick ():
     field.fall()
+    if field.check_landing():
+        field.newstone()
     field.draw()
 
 def cursol (event):
