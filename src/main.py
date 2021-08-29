@@ -1,16 +1,19 @@
-from browser import document, html
+from browser import document
+from browser import html
+from browser import timer
 
 # debug
 debug = document["debugarea"]
 def msg (s):
     debug.text = str(s)
 
-# Size and position
+# Literals
 STONE_SIZE = 32
 NR_ROW = 12
 NR_COLUMN = 6
 FIELD_WIDTH = NR_COLUMN * STONE_SIZE
 FIELD_HEIGHT = NR_ROW * STONE_SIZE
+TIMER_TICK = 100
 
 # WASD + SPACE
 CHARCODE_UP = 119
@@ -71,6 +74,10 @@ field.field[0][1] = 1
 field.field[1][2] = 2
 field.field[2][2] = 3
 
+def do_tick ():
+    field.fall()
+    field.draw()
+
 def cursol (event):
     if event.charCode == CHARCODE_UP:
         pass
@@ -86,3 +93,4 @@ def cursol (event):
     field.draw()
 
 document.bind("keypress", cursol)
+tick = timer.set_interval(do_tick, TIMER_TICK)
