@@ -7,9 +7,18 @@
         <script type="text/javascript" src="brython_stdlib.js"></script>
     </head>
     <body onload="brython()">
-        <canvas id="drawarea" width="800" height="640" style="border: 1px solid black;"></canvas>
+        <canvas id="drawarea" width="192" height="384" style="border: 1px solid black;"></canvas>
         <div id="debugarea"></div>
         <script type="text/python">
+##############################################################################
+#
+# nisepuyo-brython
+#   Copyright (C) 2021 kWatanabe
+#   Released under the GNU General Public License version 2.
+#   see "LISENSE" file
+#
+##############################################################################
+
 from browser import document
 from browser import html
 from browser import timer
@@ -20,25 +29,32 @@ debug = document["debugarea"]
 def msg (s):
     debug.text = str(s)
 
-# Literals
-STONE_SIZE = 32
-NR_ROW = 12
-NR_COLUMN = 6
-FIELD_WIDTH = NR_COLUMN * STONE_SIZE
-FIELD_HEIGHT = NR_ROW * STONE_SIZE
-POSX_NEWSTONE = 2
-POSY_NEWSTONE = 1
-DIRECTION_UP, DIRECTION_RIGHT, DIRECTION_DOWN, DIRECTION_LEFT = range(4)
-POS_PAIRSTONE = ((0, -1), (1, 0), (0, 1), (-1, 0))
-TIMER_TICK = 100
-
-# WASD + SPACE
+# Keycode
 CHARCODE_UP = 119
 CHARCODE_LEFT = 97
 CHARCODE_DOWN = 115
 CHARCODE_RIGHT = 100
 CHARCODE_SPACE = 32
 
+# Size and number
+STONE_SIZE = 32
+NR_ROW = 12
+NR_COLUMN = 6
+FIELD_WIDTH = NR_COLUMN * STONE_SIZE
+FIELD_HEIGHT = NR_ROW * STONE_SIZE
+
+# Position
+POSX_NEWSTONE = 2
+POSY_NEWSTONE = 1
+DIRECTION_UP, DIRECTION_RIGHT, DIRECTION_DOWN, DIRECTION_LEFT = range(4)
+POS_PAIRSTONE = ((0, -1), (1, 0), (0, 1), (-1, 0))
+
+# Parameter
+TIMER_TICK = 100
+
+###
+### Classes.
+###
 # Field
 class Field ():
     def __init__ (self, context, images_stone, posx = 0, posy = 0, period = 5):
@@ -57,10 +73,16 @@ class Field ():
         self.clear()
 
     def __get_pair_position (self):
+        """
+        Get position of the pair stone.
+        """
         return (self.__cursorx + POS_PAIRSTONE[self.__direction][0],
                 self.__cursory + POS_PAIRSTONE[self.__direction][1])
 
     def draw (self):
+        """
+        Draw a field on canvas.
+        """
         self.__context.clearRect(self.__x, self.__y, self.__endx, self.__endy)
         y = self.__y
         for row in self.field:
@@ -71,15 +93,23 @@ class Field ():
                 x += STONE_SIZE
             y += STONE_SIZE
         msg(self.field)
+        return
 
     def newstone (self):
+        """
+        Add new a pair of stones.
+        """
         self.__cursorx = POSX_NEWSTONE
         self.__cursory = POSY_NEWSTONE
         self.__direction = DIRECTION_UP
         self.field[POSY_NEWSTONE-1][POSX_NEWSTONE] = random.randint(1, self.__nr_stones)
         self.field[POSY_NEWSTONE][POSX_NEWSTONE] = random.randint(1, self.__nr_stones)
+        return
 
     def move_left (self):
+        """
+        Move stones to left.
+        """
         pairx, pairy = self.__get_pair_position()
         if pairx == 0 or self.__cursorx == 0:
             return
@@ -93,8 +123,12 @@ class Field ():
         self.field[pairy][pairx - 1] = pair
         self.field[self.__cursory][self.__cursorx - 1] = cur
         self.__cursorx -= 1
+        return
 
     def move_right (self):
+        """
+        Move stones to right.
+        """
         pairx, pairy = self.__get_pair_position()
         if pairx == NR_COLUMN - 1 or self.__cursorx == NR_COLUMN - 1:
             return
@@ -108,8 +142,12 @@ class Field ():
         self.field[pairy][pairx + 1] = pair
         self.field[self.__cursory][self.__cursorx + 1] = cur
         self.__cursorx += 1
+        return
 
     def rotate (self):
+        """
+        Rotate stones.
+        """
         pairx, pairy = self.__get_pair_position()
         if self.__direction == DIRECTION_UP:
             # UP -> RIGHT
@@ -136,15 +174,23 @@ class Field ():
         self.field[newy][newx] = self.field[pairy][pairx]
         self.field[pairy][pairx] = None
         self.__direction = newd
+        return
 
     def fall_periodic (self, column_ids = range(NR_COLUMN)):
+        """
+        Fall all stones periodically.
+        """
         self.__fall_counter += 1
         if self.__fall_counter != self.__fall_period:
             return
         self.__fall_counter = 0
         self.fall(column_ids)
+        return
 
     def fall (self, column_ids = range(NR_COLUMN)):
+        """
+        Fall all stones.
+        """
         for column_id in column_ids:
             for row_id in range(NR_ROW - 1, 0, -1):
                 if self.field[row_id][column_id] == None and self.field[row_id - 1][column_id] != None:
@@ -154,6 +200,9 @@ class Field ():
             self.__cursory += 1
 
     def check_landing (self):
+        """
+        Make sure a stone has landed.
+        """
         for y in range(self.__cursory, NR_ROW):
             if self.field[y][self.__cursorx] == None:
                 if self.__direction == DIRECTION_RIGHT or self.__direction == DIRECTION_LEFT:
@@ -166,6 +215,9 @@ class Field ():
         return True
 
     def check_landing_all (self):
+        """
+        Make sure all stones have landed.
+        """
         for y in range(self.__cursory, NR_ROW):
             if self.field[y][self.__cursorx] == None:
                 return False
@@ -182,8 +234,9 @@ class Field ():
         self.field = [[None] * NR_COLUMN for i in range(NR_ROW)]
 
 ###
-### Materials.
+### Images.
 ###
+# Stones
 images_stone = (html.IMG(src="img/stone0.png"), html.IMG(src="img/stone1.png"),
                 html.IMG(src="img/stone2.png"), html.IMG(src="img/stone3.png"),
                 html.IMG(src="img/stone4.png"), html.IMG(src="img/stone5.png"))
