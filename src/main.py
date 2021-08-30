@@ -119,7 +119,7 @@ class Field ():
             newx = self.__cursorx
             newy = self.__cursory - 1
             newd = DIRECTION_UP
-        if self.field[newy][newx] != None:
+        if newx < 0 or newx >= NR_COLUMN or self.field[newy][newx] != None:
             return
         self.field[newy][newx] = self.field[pairy][pairx]
         self.field[pairy][pairx] = None
