@@ -3,7 +3,7 @@
 # nisepuyo-brython
 #   Copyright (C) 2021 kWatanabe
 #   Released under the GNU General Public License version 2.
-#   see "LISENSE" file
+#   see "LISENSE" file.
 #
 ##############################################################################
 
@@ -38,14 +38,14 @@ DIRECTION_UP, DIRECTION_RIGHT, DIRECTION_DOWN, DIRECTION_LEFT = range(4)
 POS_PAIRSTONE = ((0, -1), (1, 0), (0, 1), (-1, 0))
 
 # Parameter
-TIMER_TICK = 100
+TIMER_TICK = 25
 
 ###
 ### Classes.
 ###
 # Field
 class Field ():
-    def __init__ (self, context, images_stone, posx = 0, posy = 0, period = 5):
+    def __init__ (self, context, images_stone, posx = 0, posy = 0, period = 20):
         self.__x = posx
         self.__y = posy
         self.__endx = posx + FIELD_WIDTH
@@ -57,6 +57,7 @@ class Field ():
         self.__cursory = None
         self.__direction = None
         self.__fall_period = period
+        self.set_force_fall_mode(False)
         self.reset_counter()
         self.clear()
 
@@ -80,7 +81,8 @@ class Field ():
                     self.__context.drawImage(self.__images_stone[cell], x, y)
                 x += STONE_SIZE
             y += STONE_SIZE
-        msg(self.field)
+        # msg(self.field)
+        msg(self.__fall_forced)
         return
 
     def newstone (self):
@@ -168,11 +170,14 @@ class Field ():
         """
         Fall all stones periodically.
         """
-        self.__fall_counter += 1
-        if self.__fall_counter != self.__fall_period:
-            return
-        self.__fall_counter = 0
+        if self.__fall_forced == False:
+            self.__fall_counter += 1
+            if self.__fall_counter < self.__fall_period:
+                return
+        else:
+            self.__fall_forced = False
         self.fall(column_ids)
+        self.__fall_counter = 0
         return
 
     def fall (self, column_ids = range(NR_COLUMN)):
@@ -215,10 +220,22 @@ class Field ():
                 return False
         return True
 
+    def set_force_fall_mode (self, forced = True):
+        """
+        Set the fall mode to "Forced" or "None"
+        """
+        self.__fall_forced = forced
+
     def reset_counter (self):
+        """
+        Set the fall counter to Zero.
+        """
         self.__fall_counter = 0
 
     def clear (self):
+        """
+        Delete all stones on field.
+        """
         self.field = [[None] * NR_COLUMN for i in range(NR_ROW)]
 
 ###
@@ -257,7 +274,7 @@ def do_keyevent (event):
     if freefall:
         return
     if event.charCode == CHARCODE_DOWN:
-        pass
+        field.set_force_fall_mode(True)
     elif event.charCode == CHARCODE_RIGHT:
         field.move_right()
     elif event.charCode == CHARCODE_LEFT:
