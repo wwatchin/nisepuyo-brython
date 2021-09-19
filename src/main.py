@@ -30,6 +30,7 @@ NR_ROW = 12
 NR_COLUMN = 6
 FIELD_WIDTH = NR_COLUMN * STONE_SIZE
 FIELD_HEIGHT = NR_ROW * STONE_SIZE
+NR_ERASE_STONES = 4
 
 # Position
 POSX_NEWSTONE = 2
@@ -81,8 +82,6 @@ class Field ():
                     self.__context.drawImage(self.__images_stone[cell], x, y)
                 x += STONE_SIZE
             y += STONE_SIZE
-        # msg(self.field)
-        msg(self.__fall_forced)
         return
 
     def newstone (self):
@@ -207,9 +206,9 @@ class Field ():
                 return False
         return True
 
-    def check_landing_all (self):
+    def check_landing_all_lazy (self):
         """
-        Make sure all stones have landed.
+        Make sure all stones have landed. (lazy)
         """
         for y in range(self.__cursory, NR_ROW):
             if self.field[y][self.__cursorx] == None:
@@ -220,6 +219,48 @@ class Field ():
                 return False
         return True
 
+    def check_landing_all_strict (self):
+        """
+        Make sure all stones have landed. (strict)
+        """
+        for x in range(NR_COLUMN):
+            found = (self.field[NR_ROW - 1][x] != None)
+            for y in range(NR_ROW - 2, -1, -1):
+                if found == False and self.field[y][x] != None:
+                    return False
+                elif found == True and self.field[y][x] == None:
+                    found = False
+        return True
+        
+    def __erase_stones_sub (self, x, y, stone):
+        if self.field[y][x] != stone:
+            return
+        if (x, y) in self.__candidate:
+            return
+        self.__candidate.append((x, y))
+        if y > 0: self.__erase_stones_sub(x, y - 1, stone)
+        if y < NR_ROW - 1: self.__erase_stones_sub(x, y + 1, stone)
+        if x > 0: self.__erase_stones_sub(x - 1, y, stone)
+        if x < NR_COLUMN - 1: self.__erase_stones_sub(x + 1, y, stone)
+        return
+
+    def erase_stones (self):
+        """
+        check and erase stones
+        """
+        erased = False
+        for y in range(NR_ROW):
+            for x in range(NR_COLUMN):
+                if self.field[y][x] == None:
+                    continue
+                self.__candidate = []
+                self.__erase_stones_sub(x, y, self.field[y][x])
+                if len(self.__candidate) >= NR_ERASE_STONES:
+                    for x, y in self.__candidate:
+                        self.field[y][x] = None
+                    erased = True
+        return erased
+        
     def set_force_fall_mode (self, forced = True):
         """
         Set the fall mode to "Forced" or "None"
@@ -253,19 +294,31 @@ canvas = document["drawarea"]
 context = canvas.getContext("2d")
 field = Field(context, images_stone)
 freefall = False
+erased = False
 
 def do_tick ():
     global freefall
+    global erased
     if freefall == False:
         field.fall_periodic()
         if field.check_landing():
             freefall = True
     else:
         field.fall()
-        if field.check_landing_all():
-            freefall = False
-            field.newstone()
-            field.reset_counter()
+        if erased == False:
+            if field.check_landing_all_lazy():
+                erased = field.erase_stones()
+                if erased == False:
+                    freefall = False
+                    field.newstone()
+                    field.reset_counter()
+        else:
+            if field.check_landing_all_strict():
+                erased = field.erase_stones()
+                if erased == False:
+                    freefall = False
+                    field.newstone()
+                    field.reset_counter()
     field.draw()
 
 def do_keyevent (event):
