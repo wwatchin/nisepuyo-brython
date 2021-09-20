@@ -7,3 +7,10 @@ A puzzle game implemented in Brython and running in a web browser.
 
 ## ライセンス
 - [GNU General Public License version 2](https://opensource.org/licenses/GPL-2.0)
+
+## 利用プロダクト
+- 本プログラムは、以下のプロダクトを利用しています。
+    - [Brython](https://github.com/brython-dev/brython)
+        - ```brython.js```
+        - ```brython_stdlib.js```
+        - 3条項BSDライセンス
