@@ -3,7 +3,8 @@
 # nisepuyo-brython
 #   Copyright (C) 2021 kWatanabe
 #   Released under the GNU General Public License version 2.
-#   see "LISENSE" file.
+#   See "LISENSE" file
+#            or https://github.com/wwatchin/nisepuyo-brython/blob/main/LICENSE
 #
 ##############################################################################
 
