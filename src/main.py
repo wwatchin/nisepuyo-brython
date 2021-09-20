@@ -31,7 +31,6 @@ NR_ROW = 12
 NR_COLUMN = 6
 FIELD_WIDTH = NR_COLUMN * STONE_SIZE
 FIELD_HEIGHT = NR_ROW * STONE_SIZE
-NR_ERASE_STONES = 4
 
 # Position
 POSX_NEWSTONE = 2
@@ -41,6 +40,13 @@ POS_PAIRSTONE = ((0, -1), (1, 0), (0, 1), (-1, 0))
 
 # Parameter
 TIMER_TICK = 25
+
+# Stones
+images_stone = (html.IMG(src="img/stone0.png"), html.IMG(src="img/stone1.png"),
+                html.IMG(src="img/stone2.png"), html.IMG(src="img/stone3.png"),
+                html.IMG(src="img/stone4.png"), html.IMG(src="img/stone5.png"))
+UNERASABLE_STONE = 0
+NR_ERASE_STONES = 4
 
 ###
 ### Classes.
@@ -234,6 +240,9 @@ class Field ():
         return True
         
     def __erase_stones_sub (self, x, y, stone):
+        """
+        check and erase stones (sub routine)
+        """
         if self.field[y][x] != stone:
             return
         if (x, y) in self.__candidate:
@@ -274,19 +283,24 @@ class Field ():
         """
         self.__fall_counter = 0
 
+    def gameover (self):
+        """
+        Direct the game over.
+        """
+        self.field = [[UNERASABLE_STONE if stone != None else None for stone in row] for row in self.field]
+        self.draw()
+
+    def check_gameover (self):
+        """
+        Check if there is a stone in the spout.
+        """
+        return (self.field[POSY_NEWSTONE][POSX_NEWSTONE] != None)
+
     def clear (self):
         """
         Delete all stones on field.
         """
         self.field = [[None] * NR_COLUMN for i in range(NR_ROW)]
-
-###
-### Images.
-###
-# Stones
-images_stone = (html.IMG(src="img/stone0.png"), html.IMG(src="img/stone1.png"),
-                html.IMG(src="img/stone2.png"), html.IMG(src="img/stone3.png"),
-                html.IMG(src="img/stone4.png"), html.IMG(src="img/stone5.png"))
 
 ###
 ### Main routine.
@@ -296,10 +310,24 @@ context = canvas.getContext("2d")
 field = Field(context, images_stone)
 freefall = False
 erased = False
+gameover = False
+
+def newstone():
+    global freefall
+    global gameover
+    gameover = field.check_gameover()
+    if gameover == True:
+        field.gameover()
+        return
+    freefall = False
+    field.newstone()
+    field.reset_counter()
 
 def do_tick ():
     global freefall
     global erased
+    if gameover:
+        return
     if freefall == False:
         field.fall_periodic()
         if field.check_landing():
@@ -310,19 +338,17 @@ def do_tick ():
             if field.check_landing_all_lazy():
                 erased = field.erase_stones()
                 if erased == False:
-                    freefall = False
-                    field.newstone()
-                    field.reset_counter()
+                    newstone()
         else:
             if field.check_landing_all_strict():
                 erased = field.erase_stones()
                 if erased == False:
-                    freefall = False
-                    field.newstone()
-                    field.reset_counter()
+                    newstone()
     field.draw()
 
 def do_keyevent (event):
+    if gameover:
+        return
     if event.charCode == CHARCODE_UP:
         field.newstone()
     if freefall:
